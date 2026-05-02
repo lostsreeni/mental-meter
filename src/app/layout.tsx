@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Mindcheck",
+  title: "MindMeter",
   description: "A genuinely thoughtful, evidence-based mood tracker.",
 };
 
