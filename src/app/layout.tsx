@@ -1,22 +1,36 @@
-import type { Metadata } from "next";
-import { Inter, Geist } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { UpdateToast } from "@/components/UpdateToast";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const inter = Inter({
+const inter = localFont({
+  src: "./fonts/InterVariable.woff2",
   variable: "--font-inter",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "MindMeter",
   description: "A genuinely thoughtful, evidence-based mood tracker.",
+  manifest: "/manifest.json",
   robots: {
     index: false,
     follow: false,
   },
+  appleWebApp: {
+    capable: true,
+    title: "MindMeter",
+    statusBarStyle: "default",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#475569",
 };
 
 export default function RootLayout({
@@ -25,11 +39,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("antialiased", inter.variable, "font-sans", geist.variable)}>
+    <html lang="en" className={cn("antialiased", inter.variable, "font-sans")}>
       <head>
         <meta name="referrer" content="no-referrer" />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <UpdateToast />
+        <main className="flex-1 safe-area-inset">
+          {children}
+        </main>
+        <InstallPrompt />
+      </body>
     </html>
   );
 }
