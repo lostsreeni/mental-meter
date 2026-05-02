@@ -13,20 +13,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Mindcheck",
   description: "A genuinely thoughtful, evidence-based mood tracker.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
-
-const cspHeader = `
-  default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline';
-  style-src 'self' 'unsafe-inline';
-  img-src 'self' blob: data:;
-  font-src 'self';
-  object-src 'none';
-  base-uri 'self';
-  form-action 'self';
-  frame-ancestors 'none';
-  upgrade-insecure-requests;
-`;
 
 export default function RootLayout({
   children,
@@ -36,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("antialiased", inter.variable, "font-sans", geist.variable)}>
       <head>
-        <meta httpEquiv="Content-Security-Policy" content={cspHeader.replace(/\n/g, '')} />
+        <meta name="referrer" content="no-referrer" />
       </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
