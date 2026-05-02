@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MindMeter
 
-## Getting Started
+## About the Project
 
-First, run the development server:
+MindMeter is a privacy-first, fully offline-capable mental health tracking application. It is designed to provide users with validated psychological instruments (such as PHQ-2, GAD-2, PHQ-9, GAD-7, and WHO-5) without compromising their data privacy.
+
+**Key Features & Privacy Constraints:**
+- **Zero Analytics & No Cookies:** Completely private experience with no tracking.
+- **Strictly Offline-Capable:** Operates entirely locally with a service worker. No external network requests are made.
+- **On-Device Data Architecture:** All data is strictly stored on-device using IndexedDB (via Dexie.js) with optional WebCrypto AES-GCM encryption.
+- **Safety Protocol:** Implements crisis resource direction if users indicate self-harm on the PHQ-9 assessment, displaying non-alarming support information.
+- **No Gamification:** Follows strict product rules avoiding streaks, badges, or other gamification features, maintaining the focus on accurate and clinical assessment.
+
+**Tech Stack:**
+- Framework: Next.js (App Router), fully static export with no backend.
+- Language: TypeScript.
+- Styling: Tailwind CSS & shadcn/ui.
+- Core Libraries: Dexie.js (IndexedDB storage), jsPDF & jspdf-autotable (client-side PDF generation), and Recharts (charting).
+
+## Setup the Project
+
+### Prerequisites
+- **Node.js**: The project uses Node 20 LTS. We recommend using `nvm` (Node Version Manager) to ensure you are running the correct version as pinned in the `.nvmrc` file.
+
+```bash
+nvm use
+```
+
+### Installation
+
+Clone the repository and install the dependencies:
+
+```bash
+npm install
+```
+
+### Development
+
+To start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production Build & Testing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+MindMeter is deployed as a fully static export. To test the production build locally:
 
-## Learn More
+1. Build the application:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Serve the exported static files:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run serve
+```
+This script runs `npx serve out` to locally test the statically exported production build.
