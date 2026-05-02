@@ -207,9 +207,17 @@ export default function HomeClient() {
         ))}
 
         {/* Footer note */}
-        <p className="text-xs text-muted-foreground text-center leading-relaxed pb-2">
-          All data stays on your device. Nothing is sent to any server.
-        </p>
+        <div className="flex flex-col items-center gap-2 pb-2">
+          <p className="text-xs text-muted-foreground text-center leading-relaxed">
+            All data stays on your device. Nothing is sent to any server.
+          </p>
+          <Link
+            href="/help"
+            className="text-xs text-muted-foreground underline hover:text-foreground transition-colors"
+          >
+            Get help
+          </Link>
+        </div>
       </main>
     </div>
   )

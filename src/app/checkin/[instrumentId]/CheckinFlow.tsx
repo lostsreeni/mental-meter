@@ -2,15 +2,17 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, X, Clock, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, X, Clock, ChevronDown, ChevronUp } from 'lucide-react'
 import { getInstrument, getSeverityBand } from '@/lib/instruments'
 import type { InstrumentId, Instrument } from '@/lib/instruments'
 import { ProgressDots } from '@/components/ui/ProgressDots'
 import { Slider } from '@/components/ui/Slider'
 import { createCheckin } from '@/lib/db/repositories/checkins'
+import { crisisResources, internationalFallback } from '@/lib/crisis/resources'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 
-type Phase = 'intro' | 'question' | 'complete'
+type Phase = 'intro' | 'question' | 'crisis' | 'complete'
 
 interface SavedCheckin {
   score: number | null
@@ -204,7 +206,6 @@ function QuestionScreen({
   const total = instrument.questions.length
   const currentValue = responses[question.key]
   const isSlider = instrument.id === 'sleep' || instrument.id === 'stress'
-  // slider needs an explicit unset state vs "value 0"
   const [sliderValue, setSliderValue] = useState<number>(
     currentValue !== undefined && currentValue !== null ? currentValue : 5
   )
@@ -212,7 +213,6 @@ function QuestionScreen({
     currentValue !== undefined && currentValue !== null
   )
 
-  // Reset slider state when question changes
   useEffect(() => {
     const v = responses[question.key]
     if (v !== undefined && v !== null) {
@@ -256,7 +256,6 @@ function QuestionScreen({
         </button>
       </div>
 
-      {/* Screen reader live region */}
       <div aria-live="polite" className="sr-only">
         Question {questionIndex + 1} of {total}: {question.text}
       </div>
@@ -285,14 +284,6 @@ function QuestionScreen({
             >
               {question.text}
             </p>
-            {question.isCritical && (
-              <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/50 rounded-xl px-4 py-3">
-                <AlertTriangle size={15} className="flex-none mt-0.5 text-orange-500" />
-                <span>
-                  If you&apos;re having thoughts of hurting yourself, please reach out to a crisis line or trusted person. In the US: 988 Suicide &amp; Crisis Lifeline — call or text <strong>988</strong>.
-                </span>
-              </div>
-            )}
           </div>
 
           {isSlider ? (
@@ -383,17 +374,123 @@ function QuestionScreen({
   )
 }
 
+// ─── Crisis Screen ────────────────────────────────────────────────────────────
+
+function CrisisScreen({ onContinue }: { onContinue: () => void }) {
+  const [showInternational, setShowInternational] = useState(false)
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex-1 flex flex-col px-6 py-10 max-w-lg mx-auto w-full gap-8">
+        {/* Header */}
+        <div className="flex flex-col gap-4">
+          <p className="text-base text-foreground leading-relaxed">
+            You answered that you&apos;ve had thoughts of being better off dead or hurting yourself.
+          </p>
+          <p className="text-base text-muted-foreground leading-relaxed">
+            Thank you for being honest. These thoughts are more common than people realize, and there are people trained to help — for free, anytime.
+          </p>
+        </div>
+
+        {/* Help options */}
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-medium text-foreground">If you&apos;d like to talk to someone right now:</p>
+
+          {/* 988 */}
+          <a
+            href="tel:988"
+            className="flex flex-col gap-0.5 min-h-[4rem] px-5 py-4 rounded-2xl bg-primary text-primary-foreground transition-opacity hover:opacity-90 active:opacity-80"
+          >
+            <span className="text-base font-semibold">Call or text 988</span>
+            <span className="text-sm opacity-80">US Suicide &amp; Crisis Lifeline</span>
+          </a>
+
+          {/* Crisis Text Line */}
+          <a
+            href="sms:741741?body=HOME"
+            className="flex flex-col gap-0.5 min-h-[4rem] px-5 py-4 rounded-2xl bg-primary text-primary-foreground transition-opacity hover:opacity-90 active:opacity-80"
+          >
+            <span className="text-base font-semibold">Text HOME to 741741</span>
+            <span className="text-sm opacity-80">Crisis Text Line</span>
+          </a>
+
+          {/* International resources toggle */}
+          <button
+            onClick={() => setShowInternational((v) => !v)}
+            className="flex items-center justify-between min-h-[4rem] px-5 py-4 rounded-2xl bg-primary text-primary-foreground transition-opacity hover:opacity-90 active:opacity-80"
+            aria-expanded={showInternational}
+          >
+            <span className="text-base font-semibold">International resources</span>
+            {showInternational
+              ? <ChevronUp size={18} className="flex-none opacity-80" />
+              : <ChevronDown size={18} className="flex-none opacity-80" />
+            }
+          </button>
+
+          {showInternational && (
+            <div className="flex flex-col gap-4 px-1 py-2">
+              {crisisResources.map((region) => (
+                <div key={region.country} className="flex flex-col gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {region.country}
+                  </p>
+                  {region.services.map((service) => (
+                    <a
+                      key={service.name}
+                      href={service.phoneHref ?? service.smsHref ?? '#'}
+                      className="flex flex-col gap-0.5 min-h-[3.5rem] px-4 py-3 rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-accent"
+                    >
+                      <span className="text-sm font-medium">{service.name}</span>
+                      <span className="text-xs text-muted-foreground">{service.detail}</span>
+                    </a>
+                  ))}
+                </div>
+              ))}
+              <div className="flex flex-col gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Everywhere else
+                </p>
+                <a
+                  href={internationalFallback.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col gap-0.5 min-h-[3.5rem] px-4 py-3 rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-accent"
+                >
+                  <span className="text-sm font-medium">{internationalFallback.name}</span>
+                  <span className="text-xs text-muted-foreground">{internationalFallback.detail}</span>
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Secondary action */}
+      <div className="px-6 pb-8 max-w-lg mx-auto w-full">
+        <button
+          onClick={onContinue}
+          className="w-full min-h-[3rem] rounded-2xl border border-border bg-background text-foreground text-sm font-medium transition-colors hover:bg-accent"
+        >
+          I&apos;m okay, continue
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Results Screen ───────────────────────────────────────────────────────────
 
 function ResultsScreen({
   instrument,
   result,
   responses,
+  showResourcesBanner,
   onDone,
 }: {
   instrument: Instrument
   result: SavedCheckin
   responses: Record<string, number | null>
+  showResourcesBanner?: boolean
   onDone: () => void
 }) {
   const isCasual = instrument.id === 'sleep' || instrument.id === 'stress'
@@ -401,6 +498,19 @@ function ResultsScreen({
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      {/* Persistent resources banner */}
+      {showResourcesBanner && (
+        <div className="bg-muted/60 border-b border-border px-6 py-3">
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-lg mx-auto">
+            Resources are always available in{' '}
+            <Link href="/help" className="underline text-foreground hover:text-primary transition-colors">
+              Get help
+            </Link>
+            .
+          </p>
+        </div>
+      )}
+
       <div className="flex-1 flex flex-col px-6 py-10 max-w-lg mx-auto w-full gap-6">
         <div className="flex flex-col gap-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -467,16 +577,6 @@ function ResultsScreen({
           )}
         </div>
 
-        {/* Crisis reminder if q9 was non-zero */}
-        {instrument.id === 'phq9' && responses['phq9_q9'] !== undefined && responses['phq9_q9'] !== null && responses['phq9_q9'] > 0 && (
-          <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-800 leading-relaxed">
-            <AlertTriangle size={16} className="flex-none mt-0.5 text-red-500" />
-            <span>
-              You indicated some thoughts of self-harm. If you&apos;re struggling, please reach out — 988 Suicide &amp; Crisis Lifeline: call or text <strong>988</strong> (US).
-            </span>
-          </div>
-        )}
-
         {/* Individual responses */}
         <div className="flex flex-col gap-1">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
@@ -526,6 +626,8 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
   const [responses, setResponses] = useState<Record<string, number | null>>({})
   const [showCloseModal, setShowCloseModal] = useState(false)
   const [result, setResult] = useState<SavedCheckin | null>(null)
+  const [showResourcesBanner, setShowResourcesBanner] = useState(false)
+  const q9TriggeredRef = useRef(false)
   const startTimestampRef = useRef<Date | null>(null)
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -603,13 +705,23 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
       )
 
       setResult({ score, severityBandLabel, severityBandDescription, severityBandColor, skippedCount })
-      setPhase('complete')
+
+      if (q9TriggeredRef.current) {
+        setPhase('crisis')
+      } else {
+        setPhase('complete')
+      }
     },
     [questionIndex, instrument]
   )
 
   const handleSelect = useCallback(
     (key: string, value: number | null) => {
+      // Detect Q9 trigger immediately on answer — does not interrupt the flow
+      if (key === 'phq9_q9' && value !== null && value >= 1) {
+        q9TriggeredRef.current = true
+      }
+
       const updated = { ...responses, [key]: value }
       setResponses(updated)
 
@@ -620,6 +732,11 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
     },
     [responses, advance]
   )
+
+  const handleCrisisContinue = useCallback(() => {
+    setShowResourcesBanner(true)
+    setPhase('complete')
+  }, [])
 
   // Keyboard support (question phase only)
   useEffect(() => {
@@ -699,11 +816,16 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
         />
       )}
 
+      {phase === 'crisis' && (
+        <CrisisScreen onContinue={handleCrisisContinue} />
+      )}
+
       {phase === 'complete' && result && (
         <ResultsScreen
           instrument={instrument}
           result={result}
           responses={responses}
+          showResourcesBanner={showResourcesBanner}
           onDone={() => router.push('/')}
         />
       )}
