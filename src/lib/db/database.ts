@@ -15,6 +15,13 @@ export class MindMeterDatabase extends Dexie {
       notes: '++id, timestamp',
       settings: 'key',
     });
+    // v2: score and severityBand may be null (skipped questions), added durationSeconds
+    this.version(2).stores({
+      checkins: '++id, timestamp, type, [type+timestamp]',
+      responses: '++id, checkinId',
+      notes: '++id, timestamp',
+      settings: 'key',
+    });
   }
 }
 

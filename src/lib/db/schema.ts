@@ -4,14 +4,16 @@ export interface Checkin {
   id?: number;
   timestamp: Date;
   type: Instrument;
-  score: number;
+  score: number | null;
+  severityBand: string | null;
+  durationSeconds: number;
 }
 
 export interface Response {
   id?: number;
   checkinId: number;
   questionId: string;
-  value: number;
+  value: number | null;
 }
 
 export interface Note {
