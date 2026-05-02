@@ -1,14 +1,17 @@
-import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card"
 import { ProgressDots } from "@/components/ui/ProgressDots"
+import { instruments } from "@/lib/instruments"
 import DesignInteractive from "./DesignInteractive"
 
-export default function DesignPage() {
-  if (process.env.NODE_ENV !== "development") {
-    redirect("/")
-  }
+const SEVERITY_COLOR_MAP: Record<string, string> = {
+  minimal: "bg-[var(--severity-minimal)]",
+  mild: "bg-[var(--severity-mild)]",
+  moderate: "bg-[var(--severity-moderate)]",
+  severe: "bg-[var(--severity-severe)]",
+}
 
+export default function DesignPage() {
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-3xl mx-auto space-y-12">
@@ -133,6 +136,50 @@ export default function DesignPage() {
 
         {/* Interactive components (client) */}
         <DesignInteractive />
+
+        {/* Instrument Registry */}
+        <section aria-labelledby="instruments-heading">
+          <h2 id="instruments-heading" className="text-xl font-semibold text-foreground mb-4">
+            Instrument Registry
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {Object.values(instruments).map((inst) => (
+              <Card key={inst.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle>{inst.shortName}</CardTitle>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                      {inst.questions.length}Q
+                    </span>
+                  </div>
+                  <CardDescription>{inst.name}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                    {inst.description}
+                  </p>
+                  <p className="text-xs text-muted-foreground italic mb-3">
+                    &ldquo;{inst.recallWindow}&rdquo;
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {inst.severityBands.map((band) => (
+                      <span
+                        key={band.label}
+                        className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full text-white font-medium ${SEVERITY_COLOR_MAP[band.color]}`}
+                        title={band.description}
+                      >
+                        {band.label}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    {inst.validatedFor} &middot; ~{Math.round(inst.estimatedSeconds / 60)} min
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   )

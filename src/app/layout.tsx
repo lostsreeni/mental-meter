@@ -6,7 +6,7 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdateToast } from "@/components/UpdateToast";
 
 const inter = localFont({
-  src: "./fonts/InterVariable.woff2",
+  src: [{ path: "./fonts/InterVariable.woff2", style: "normal" }],
   variable: "--font-inter",
   display: "swap",
 });
