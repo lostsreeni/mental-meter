@@ -8,7 +8,6 @@ import type { InstrumentId, Instrument } from '@/lib/instruments'
 import { ProgressDots } from '@/components/ui/ProgressDots'
 import { Slider } from '@/components/ui/Slider'
 import { createCheckin } from '@/lib/db/repositories/checkins'
-import { createNote } from '@/lib/db/repositories/notes'
 import { db } from '@/lib/db/database'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -19,6 +18,7 @@ interface SavedCheckin {
   timestamp: Date
   durationSeconds: number
   isFirstForInstrument: boolean
+  checkinId: number | null
 
   score: number | null
   severityBandLabel: string | null
@@ -450,7 +450,7 @@ function ResultsScreen({
   responses: Record<string, number | null>
   showResourcesBanner?: boolean
   onDone: () => void
-  onAddNote: () => void
+  onAddNote: (checkinId: number | null) => void
 }) {
   const isCasual = instrument.id === 'sleep' || instrument.id === 'stress'
   const color = result.severityBandColor ?? 'minimal'
@@ -586,7 +586,7 @@ function ResultsScreen({
       {/* Done button */}
       <div className="px-6 pb-8 max-w-lg mx-auto w-full flex flex-col gap-2">
         <button
-          onClick={onAddNote}
+          onClick={() => onAddNote(result.checkinId)}
           className="w-full min-h-[3.25rem] rounded-2xl border border-border bg-background text-foreground font-medium text-base transition-colors hover:bg-accent"
         >
           Add a note
@@ -680,7 +680,7 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
       const checkinTimestamp = new Date()
       const priorCount = await db.checkins.where('type').equals(instrument.id).count()
 
-      await createCheckin(
+      const checkinId = await createCheckin(
         {
           timestamp: checkinTimestamp,
           type: instrument.id,
@@ -703,6 +703,7 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
         timestamp: checkinTimestamp,
         durationSeconds,
         isFirstForInstrument: priorCount === 0,
+        checkinId,
       })
 
       if (q9TriggeredRef.current) {
@@ -829,11 +830,7 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
           responses={responses}
           showResourcesBanner={showResourcesBanner}
           onDone={() => router.push('/')}
-          onAddNote={async () => {
-            const content = window.prompt('Add a note for this check-in')
-            if (!content || !content.trim()) return
-            await createNote({ timestamp: new Date(), content: content.trim() })
-          }}
+          onAddNote={(checkinId) => router.push(`/notes/new?instrumentId=${instrument.id}${checkinId ? `&checkinId=${checkinId}` : ''}`)}
         />
       )}
     </>

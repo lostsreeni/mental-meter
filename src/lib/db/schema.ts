@@ -20,6 +20,7 @@ export interface Note {
   id?: number;
   timestamp: Date;
   content: string;
+  checkinId?: number | null;
 }
 
 export interface Setting {

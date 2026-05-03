@@ -22,6 +22,12 @@ export class MindMeterDatabase extends Dexie {
       notes: '++id, timestamp',
       settings: 'key',
     });
+    this.version(3).stores({
+      checkins: '++id, timestamp, type, [type+timestamp]',
+      responses: '++id, checkinId',
+      notes: '++id, timestamp, checkinId',
+      settings: 'key',
+    });
   }
 }
 
