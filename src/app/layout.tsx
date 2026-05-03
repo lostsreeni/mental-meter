@@ -1,15 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdateToast } from "@/components/UpdateToast";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "MindMeter",
@@ -39,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("antialiased", inter.variable, "font-sans")}>
+    <html lang="en" className={cn("antialiased", "font-sans") }>
       <head>
         <meta name="referrer" content="no-referrer" />
       </head>
