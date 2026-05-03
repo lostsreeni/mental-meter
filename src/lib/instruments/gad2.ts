@@ -47,6 +47,11 @@ export const gad2: Instrument = {
         'Scores of 3 or higher suggest further evaluation with the full GAD-7 is warranted.',
     },
   ],
+  resultContext: {
+    overview: 'This is a screening tool, not a diagnosis.',
+    trends: 'Scores can vary day to day; trends matter more than single results.',
+    elevated: 'Consider sharing this with a healthcare provider or therapist.',
+  },
   attribution:
     'Kroenke K, Spitzer RL, Williams JBW, Monahan PO, Löwe B. Anxiety disorders in primary care: prevalence, impairment, comorbidity, and detection. Ann Intern Med. 2007;146(5):317-325. © Pfizer Inc. Free for use.',
   validatedFor: 'Adults 18+',

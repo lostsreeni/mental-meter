@@ -47,6 +47,11 @@ export const phq2: Instrument = {
         'Scores of 3 or higher suggest further evaluation with the full PHQ-9 is warranted.',
     },
   ],
+  resultContext: {
+    overview: 'This is a screening tool, not a diagnosis.',
+    trends: 'Scores can vary day to day; trends matter more than single results.',
+    elevated: 'Consider sharing this with a healthcare provider or therapist.',
+  },
   attribution:
     'Kroenke K, Spitzer RL, Williams JBW. The Patient Health Questionnaire-2: Validity of a two-item depression screener. Med Care. 2003;41(11):1284-1292. © Pfizer Inc. Free for use.',
   validatedFor: 'Adults 18+',

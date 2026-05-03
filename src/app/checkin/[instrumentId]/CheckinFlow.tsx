@@ -2,19 +2,24 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, X, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronLeft, X, Clock, ArrowRight } from 'lucide-react'
 import { getInstrument, getSeverityBand } from '@/lib/instruments'
 import type { InstrumentId, Instrument } from '@/lib/instruments'
 import { ProgressDots } from '@/components/ui/ProgressDots'
 import { Slider } from '@/components/ui/Slider'
 import { createCheckin } from '@/lib/db/repositories/checkins'
-import { crisisResources, internationalFallback } from '@/lib/crisis/resources'
+import { createNote } from '@/lib/db/repositories/notes'
+import { db } from '@/lib/db/database'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
 type Phase = 'intro' | 'question' | 'crisis' | 'complete'
 
 interface SavedCheckin {
+  timestamp: Date
+  durationSeconds: number
+  isFirstForInstrument: boolean
+
   score: number | null
   severityBandLabel: string | null
   severityBandDescription: string | null
@@ -310,7 +315,7 @@ function QuestionScreen({
               </button>
             </div>
           ) : (
-            <div className="flex flex-col gap-2" role="group">
+            <div className="flex flex-col gap-2" role="radiogroup" aria-label={`Question ${questionIndex + 1} options`}>
               {question.scale.map((option, i) => {
                 const isSelected = currentValue === option.value
                 return (
@@ -377,12 +382,9 @@ function QuestionScreen({
 // ─── Crisis Screen ────────────────────────────────────────────────────────────
 
 function CrisisScreen({ onContinue }: { onContinue: () => void }) {
-  const [showInternational, setShowInternational] = useState(false)
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <div className="flex-1 flex flex-col px-6 py-10 max-w-lg mx-auto w-full gap-8">
-        {/* Header */}
         <div className="flex flex-col gap-4">
           <p className="text-base text-foreground leading-relaxed">
             You answered that you&apos;ve had thoughts of being better off dead or hurting yourself.
@@ -392,11 +394,9 @@ function CrisisScreen({ onContinue }: { onContinue: () => void }) {
           </p>
         </div>
 
-        {/* Help options */}
         <div className="flex flex-col gap-3">
           <p className="text-sm font-medium text-foreground">If you&apos;d like to talk to someone right now:</p>
 
-          {/* 988 */}
           <a
             href="tel:988"
             className="flex flex-col gap-0.5 min-h-[4rem] px-5 py-4 rounded-2xl bg-primary text-primary-foreground transition-opacity hover:opacity-90 active:opacity-80"
@@ -405,7 +405,6 @@ function CrisisScreen({ onContinue }: { onContinue: () => void }) {
             <span className="text-sm opacity-80">US Suicide &amp; Crisis Lifeline</span>
           </a>
 
-          {/* Crisis Text Line */}
           <a
             href="sms:741741?body=HOME"
             className="flex flex-col gap-0.5 min-h-[4rem] px-5 py-4 rounded-2xl bg-primary text-primary-foreground transition-opacity hover:opacity-90 active:opacity-80"
@@ -414,58 +413,16 @@ function CrisisScreen({ onContinue }: { onContinue: () => void }) {
             <span className="text-sm opacity-80">Crisis Text Line</span>
           </a>
 
-          {/* International resources toggle */}
-          <button
-            onClick={() => setShowInternational((v) => !v)}
+          <Link
+            href="/help"
             className="flex items-center justify-between min-h-[4rem] px-5 py-4 rounded-2xl bg-primary text-primary-foreground transition-opacity hover:opacity-90 active:opacity-80"
-            aria-expanded={showInternational}
           >
             <span className="text-base font-semibold">International resources</span>
-            {showInternational
-              ? <ChevronUp size={18} className="flex-none opacity-80" />
-              : <ChevronDown size={18} className="flex-none opacity-80" />
-            }
-          </button>
-
-          {showInternational && (
-            <div className="flex flex-col gap-4 px-1 py-2">
-              {crisisResources.map((region) => (
-                <div key={region.country} className="flex flex-col gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {region.country}
-                  </p>
-                  {region.services.map((service) => (
-                    <a
-                      key={service.name}
-                      href={service.phoneHref ?? service.smsHref ?? '#'}
-                      className="flex flex-col gap-0.5 min-h-[3.5rem] px-4 py-3 rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-accent"
-                    >
-                      <span className="text-sm font-medium">{service.name}</span>
-                      <span className="text-xs text-muted-foreground">{service.detail}</span>
-                    </a>
-                  ))}
-                </div>
-              ))}
-              <div className="flex flex-col gap-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Everywhere else
-                </p>
-                <a
-                  href={internationalFallback.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col gap-0.5 min-h-[3.5rem] px-4 py-3 rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-accent"
-                >
-                  <span className="text-sm font-medium">{internationalFallback.name}</span>
-                  <span className="text-xs text-muted-foreground">{internationalFallback.detail}</span>
-                </a>
-              </div>
-            </div>
-          )}
+            <ArrowRight size={18} className="flex-none opacity-80" aria-hidden="true" />
+          </Link>
         </div>
       </div>
 
-      {/* Secondary action */}
       <div className="px-6 pb-8 max-w-lg mx-auto w-full">
         <button
           onClick={onContinue}
@@ -486,12 +443,14 @@ function ResultsScreen({
   responses,
   showResourcesBanner,
   onDone,
+  onAddNote,
 }: {
   instrument: Instrument
   result: SavedCheckin
   responses: Record<string, number | null>
   showResourcesBanner?: boolean
   onDone: () => void
+  onAddNote: () => void
 }) {
   const isCasual = instrument.id === 'sleep' || instrument.id === 'stress'
   const color = result.severityBandColor ?? 'minimal'
@@ -502,7 +461,7 @@ function ResultsScreen({
       {showResourcesBanner && (
         <div className="bg-muted/60 border-b border-border px-6 py-3">
           <p className="text-xs text-muted-foreground leading-relaxed max-w-lg mx-auto">
-            Resources are always available in{' '}
+            Resources are always available in Settings →{' '}
             <Link href="/help" className="underline text-foreground hover:text-primary transition-colors">
               Get help
             </Link>
@@ -567,15 +526,37 @@ function ResultsScreen({
             </>
           ) : (
             <div className="flex flex-col gap-2">
-              <p className="text-base font-medium text-foreground">Score not available</p>
+              <p className="text-base font-medium text-foreground">Partial check-in saved</p>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {result.skippedCount} of {instrument.questions.length}{' '}
-                {result.skippedCount === 1 ? 'question was' : 'questions were'} skipped — a total
-                score requires all questions to be answered.
+                {instrument.questions.length - result.skippedCount} of {instrument.questions.length} questions were answered.
+                A total score is not available when questions are skipped. You can retake this check-in whenever you feel ready.
               </p>
             </div>
           )}
         </div>
+
+
+
+        <p className="text-xs text-muted-foreground">
+          {result.timestamp.toLocaleString()}
+        </p>
+
+        <details className="rounded-xl border border-border bg-card px-4 py-3">
+          <summary className="cursor-pointer text-sm font-semibold text-foreground">What this means</summary>
+          <div className="mt-2 text-sm text-muted-foreground space-y-2">
+            <p>{instrument.resultContext.overview}</p>
+            <p>{instrument.resultContext.trends}</p>
+            {result.score !== null && ['moderate', 'severe'].includes(result.severityBandColor ?? '') && (
+              <p>{instrument.resultContext.elevated}</p>
+            )}
+          </div>
+        </details>
+
+        {result.isFirstForInstrument && (
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            One score on its own isn't very meaningful. The app gets more useful after a few check-ins as patterns emerge.
+          </p>
+        )}
 
         {/* Individual responses */}
         <div className="flex flex-col gap-1">
@@ -603,7 +584,13 @@ function ResultsScreen({
       </div>
 
       {/* Done button */}
-      <div className="px-6 pb-8 max-w-lg mx-auto w-full">
+      <div className="px-6 pb-8 max-w-lg mx-auto w-full flex flex-col gap-2">
+        <button
+          onClick={onAddNote}
+          className="w-full min-h-[3.25rem] rounded-2xl border border-border bg-background text-foreground font-medium text-base transition-colors hover:bg-accent"
+        >
+          Add a note
+        </button>
         <button
           onClick={onDone}
           className="w-full min-h-[3.5rem] rounded-2xl bg-primary text-primary-foreground font-semibold text-base transition-opacity hover:opacity-90 active:opacity-80"
@@ -690,9 +677,12 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
         ? Math.round((Date.now() - startTimestampRef.current.getTime()) / 1000)
         : 0
 
+      const checkinTimestamp = new Date()
+      const priorCount = await db.checkins.where('type').equals(instrument.id).count()
+
       await createCheckin(
         {
-          timestamp: new Date(),
+          timestamp: checkinTimestamp,
           type: instrument.id,
           score,
           severityBand: severityBandLabel,
@@ -704,7 +694,16 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
         }))
       )
 
-      setResult({ score, severityBandLabel, severityBandDescription, severityBandColor, skippedCount })
+      setResult({
+        score,
+        severityBandLabel,
+        severityBandDescription,
+        severityBandColor,
+        skippedCount,
+        timestamp: checkinTimestamp,
+        durationSeconds,
+        isFirstForInstrument: priorCount === 0,
+      })
 
       if (q9TriggeredRef.current) {
         setPhase('crisis')
@@ -770,9 +769,12 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
       }
 
       if (e.key === 'Enter') {
-        const current = responses[question.key]
-        if (current !== undefined) {
-          handleSelect(question.key, current)
+        e.preventDefault()
+        if (responses[question.key] !== undefined) {
+          if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current)
+          advanceTimerRef.current = setTimeout(() => {
+            void advance(question.key, responses[question.key] ?? null, responses)
+          }, 250)
         }
       }
     }
@@ -827,6 +829,11 @@ export default function CheckinFlow({ instrumentId }: { instrumentId: Instrument
           responses={responses}
           showResourcesBanner={showResourcesBanner}
           onDone={() => router.push('/')}
+          onAddNote={async () => {
+            const content = window.prompt('Add a note for this check-in')
+            if (!content || !content.trim()) return
+            await createNote({ timestamp: new Date(), content: content.trim() })
+          }}
         />
       )}
     </>
