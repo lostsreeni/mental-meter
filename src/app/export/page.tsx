@@ -18,6 +18,7 @@ export default function ExportPage(){
   const [name,setName]=useState(''); const [clinician,setClinician]=useState(''); const [appt,setAppt]=useState('')
   const [lastExportDate,setLastExportDate]=useState<string>('')
   const [progress,setProgress]=useState('')
+  const [showNotesPreview,setShowNotesPreview]=useState(false)
 
   useEffect(()=>{(async()=>{const d=await getSetting('lastExportDate') as string|null; if(d) setLastExportDate(d)})()},[])
 
@@ -34,6 +35,8 @@ export default function ExportPage(){
   },[preset,start,end,lastExportDate])
 
   const inRange = all.filter(c=>{const t=new Date(c.timestamp); return t>=range.start && t<=range.end})
+  const notes = useLiveQuery(()=>db.notes.toArray(),[]) ?? []
+  const notesInRange = notes.filter(n=>{const t=new Date(n.timestamp); return t>=range.start && t<=range.end})
   const counts = Object.keys(instruments).reduce((acc,id)=>{acc[id]=inRange.filter(c=>c.type===id).length; return acc},{} as Record<string,number>)
 
   useEffect(()=>{ if(Object.keys(selected).length===0){ const d:Record<string,boolean>={}; Object.keys(instruments).forEach(id=>d[id]=counts[id]>0); setSelected(d)}} ,[JSON.stringify(counts)])
@@ -56,8 +59,24 @@ export default function ExportPage(){
     <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name or initials" className="w-full border rounded px-3 py-2"/>
     <input value={clinician} onChange={e=>setClinician(e.target.value)} placeholder="Therapist/clinician name" className="w-full border rounded px-3 py-2"/>
     <input type="date" value={appt} onChange={e=>setAppt(e.target.value)} className="border rounded px-3 py-2"/>
-    <p className="text-xs text-muted-foreground">These appear in the PDF but aren't saved.</p></section>
+    <p className="text-xs text-muted-foreground">These appear in the PDF but aren't saved.</p>
+    <p className="text-xs text-muted-foreground">Emoji in notes may not appear in PDFs.</p></section>
 
+
+    {includeNotes && (
+      <section className="rounded-xl border p-3">
+        <p className="text-sm">{notesInRange.length} note{notesInRange.length===1?'':'s'} will be included.</p>
+        <button className="text-xs underline text-muted-foreground" onClick={()=>setShowNotesPreview(v=>!v)}>Review notes before exporting</button>
+        {showNotesPreview && (
+          <div className="mt-2 max-h-40 overflow-auto space-y-2">
+            {notesInRange.map((n)=> <div key={n.id} className="text-xs border rounded p-2">
+              <div className="text-muted-foreground">{new Date(n.timestamp).toLocaleString()}</div>
+              <div>{n.content}</div>
+            </div>)}
+          </div>
+        )}
+      </section>
+    )}
     <section className="rounded-xl border p-3"><h2 className="font-medium mb-1">Preview</h2><div className="h-32 bg-muted/40 rounded flex items-center justify-center text-sm text-muted-foreground">Page 1 preview: {selectedIds.join(', ') || 'No instruments selected'}</div></section>
 
     <button disabled={!canGenerate} onClick={async()=>{setProgress('Generating... page 1 of 1'); await new Promise(r=>setTimeout(r,500)); const now=new Date(); const date=now.toISOString().slice(0,10); const blob=new Blob([JSON.stringify({range,selectedIds,includeNotes,name,clinician,appt},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`mindmeter-report-${date}.pdf`; a.click(); setProgress('Done'); await setSetting('lastExportDate',now.toISOString()); await setSetting('lastExportRange',{preset,start:range.start.toISOString(),end:range.end.toISOString()}); const count=(await getSetting('exportCount') as number|null)??0; await setSetting('exportCount',count+1)}} className="w-full min-h-12 rounded-xl bg-primary text-primary-foreground disabled:opacity-50">Generate</button>
