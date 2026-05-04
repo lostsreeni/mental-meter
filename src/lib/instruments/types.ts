@@ -36,4 +36,5 @@ export type Instrument = {
     trends: string
     elevated: string
   }
+  quickThresholds?: string[]
 }
