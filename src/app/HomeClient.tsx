@@ -211,12 +211,16 @@ export default function HomeClient() {
           <p className="text-xs text-muted-foreground text-center leading-relaxed">
             All data stays on your device. Nothing is sent to any server.
           </p>
-          <Link
-            href="/help"
-            className="text-xs text-muted-foreground underline hover:text-foreground transition-colors"
-          >
-            Get help
-          </Link>
+          <div className="flex gap-3 text-xs text-muted-foreground">
+            <a href="/notes/new" className="underline hover:text-foreground">Quick note</a>
+            Settings →{' '}
+            <Link
+              href="/help"
+              className="underline hover:text-foreground transition-colors"
+            >
+              Get help
+            </Link>
+          </div>
         </div>
       </main>
     </div>

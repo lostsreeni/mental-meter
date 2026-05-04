@@ -99,6 +99,11 @@ export const who5: Instrument = {
         'Scores in this range reflect good subjective well-being.',
     },
   ],
+  resultContext: {
+    overview: 'This is a screening tool, not a diagnosis.',
+    trends: 'Scores can vary day to day; trends matter more than single results.',
+    elevated: 'Consider sharing this with a healthcare provider or therapist.',
+  },
   attribution:
     'WHO (1998). Wellbeing measures in primary health care: the DepCare project. Copenhagen: WHO Regional Office for Europe. © World Health Organization. Free for use.',
   validatedFor: 'Adults 18+',

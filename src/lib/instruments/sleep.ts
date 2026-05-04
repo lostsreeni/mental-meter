@@ -47,6 +47,11 @@ export const sleep: Instrument = {
         'Scores in this range suggest last night\'s sleep was good.',
     },
   ],
+  resultContext: {
+    overview: 'This is a screening tool, not a diagnosis.',
+    trends: 'Scores can vary day to day; trends matter more than single results.',
+    elevated: 'Consider sharing this with a healthcare provider or therapist.',
+  },
   attribution: 'Quick check-in — not a clinical scale.',
   validatedFor: 'Not a validated clinical instrument',
 }

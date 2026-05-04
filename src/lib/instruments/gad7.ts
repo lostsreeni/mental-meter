@@ -88,6 +88,11 @@ export const gad7: Instrument = {
         'Scores in this range suggest severe anxiety; active treatment is typically recommended.',
     },
   ],
+  resultContext: {
+    overview: 'This is a screening tool, not a diagnosis.',
+    trends: 'Scores can vary day to day; trends matter more than single results.',
+    elevated: 'Consider sharing this with a healthcare provider or therapist.',
+  },
   attribution:
     'Spitzer RL, Kroenke K, Williams JBW, Löwe B. A brief measure for assessing generalized anxiety disorder. Arch Intern Med. 2006;166(10):1092-1097. © Pfizer Inc. Free for use.',
   validatedFor: 'Adults 18+',

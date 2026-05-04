@@ -31,4 +31,9 @@ export type Instrument = {
   severityBands: SeverityBand[]
   attribution: string
   validatedFor: string
+  resultContext: {
+    overview: string
+    trends: string
+    elevated: string
+  }
 }
