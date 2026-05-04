@@ -107,6 +107,11 @@ export const phq9: Instrument = {
         'Scores in this range are associated with substantial functional impairment; active treatment is typically recommended.',
     },
   ],
+  resultContext: {
+    overview: 'This is a screening tool, not a diagnosis.',
+    trends: 'Scores can vary day to day; trends matter more than single results.',
+    elevated: 'Consider sharing this with a healthcare provider or therapist.',
+  },
   attribution:
     'Kroenke K, Spitzer RL, Williams JBW. The PHQ-9: Validity of a brief depression severity measure. J Gen Intern Med. 2001;16(9):606-613. © Pfizer Inc. Free for use.',
   validatedFor: 'Adults 18+',

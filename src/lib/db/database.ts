@@ -1,11 +1,12 @@
 import Dexie, { Table } from 'dexie';
-import { Checkin, Response, Note, Setting } from './schema';
+import { Checkin, Response, Note, Setting, NoteDraft } from './schema';
 
 export class MindMeterDatabase extends Dexie {
   checkins!: Table<Checkin, number>;
   responses!: Table<Response, number>;
   notes!: Table<Note, number>;
   settings!: Table<Setting, string>;
+  noteDrafts!: Table<NoteDraft, string>;
 
   constructor() {
     super('mindcheck');
@@ -21,6 +22,19 @@ export class MindMeterDatabase extends Dexie {
       responses: '++id, checkinId',
       notes: '++id, timestamp',
       settings: 'key',
+    });
+    this.version(3).stores({
+      checkins: '++id, timestamp, type, [type+timestamp]',
+      responses: '++id, checkinId',
+      notes: '++id, timestamp, checkinId',
+      settings: 'key',
+    });
+    this.version(4).stores({
+      checkins: '++id, timestamp, type, [type+timestamp]',
+      responses: '++id, checkinId',
+      notes: '++id, timestamp, checkinId',
+      settings: 'key',
+      noteDrafts: 'key, updatedAt',
     });
   }
 }

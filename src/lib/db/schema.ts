@@ -20,9 +20,20 @@ export interface Note {
   id?: number;
   timestamp: Date;
   content: string;
+  checkinId?: number | null;
+  tags?: string[];
+  editedAt?: Date | null;
 }
 
 export interface Setting {
   key: string;
   value: unknown;
+}
+
+
+export interface NoteDraft {
+  key: string;
+  content: string;
+  tags: string[];
+  updatedAt: Date;
 }
