@@ -52,6 +52,7 @@ export const stress: Instrument = {
     trends: 'Scores can vary day to day; trends matter more than single results.',
     elevated: 'Consider sharing this with a healthcare provider or therapist.',
   },
+  quickThresholds: ['0-3 = lower stress context', '4-6 = moderate stress', '7+ = high stress context'],
   attribution: 'Quick check-in — not a clinical scale.',
   validatedFor: 'Not a validated clinical instrument',
 }

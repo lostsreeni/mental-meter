@@ -15,7 +15,7 @@ export type JsPdfLike = {
 
 export class PDFBuilder {
   doc: JsPdfLike
-  cursor = { x: PDF_PAGE.MARGIN, y: PDF_PAGE.MARGIN }
+  cursor: { x: number; y: number } = { x: PDF_PAGE.MARGIN, y: PDF_PAGE.MARGIN }
 
   constructor(doc: JsPdfLike) {
     this.doc = doc

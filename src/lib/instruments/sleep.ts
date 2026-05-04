@@ -52,6 +52,7 @@ export const sleep: Instrument = {
     trends: 'Scores can vary day to day; trends matter more than single results.',
     elevated: 'Consider sharing this with a healthcare provider or therapist.',
   },
+  quickThresholds: ['<5 = poor sleep context', '5-7 = mixed', '8+ = generally better sleep'],
   attribution: 'Quick check-in — not a clinical scale.',
   validatedFor: 'Not a validated clinical instrument',
 }
