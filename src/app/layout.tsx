@@ -3,6 +3,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdateToast } from "@/components/UpdateToast";
+import { BottomNav } from "@/components/BottomNav";
 
 
 export const metadata: Metadata = {
@@ -42,6 +43,7 @@ export default function RootLayout({
         <main className="flex-1 safe-area-inset">
           {children}
         </main>
+        <BottomNav />
         <InstallPrompt />
       </body>
     </html>
