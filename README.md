@@ -1,8 +1,8 @@
-# MindMeter
+# MentalMeter
 
 ## About the Project
 
-MindMeter is a privacy-first, fully offline-capable mental health tracking application. It is designed to provide users with validated psychological instruments (such as PHQ-2, GAD-2, PHQ-9, GAD-7, and WHO-5) without compromising their data privacy.
+MentalMeter is a privacy-first, fully offline-capable mental health tracking application. It is designed to provide users with validated psychological instruments (such as PHQ-2, GAD-2, PHQ-9, GAD-7, and WHO-5) without compromising their data privacy.
 
 **Key Features & Privacy Constraints:**
 - **Zero Analytics & No Cookies:** Completely private experience with no tracking.
@@ -46,7 +46,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ### Production Build & Testing
 
-MindMeter is deployed as a fully static export. To test the production build locally:
+MentalMeter is deployed as a fully static export. To test the production build locally:
 
 1. Build the application:
 
